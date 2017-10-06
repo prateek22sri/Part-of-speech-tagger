@@ -5,7 +5,7 @@ This method is good to understand how the transition probabilities, emission pro
 Author: Prateek Srivastava
 Date: October 5,2017
 
-References : CSCI B659 - Damir Cavar
+References : Indiana University CSCI B659 - by Damir Cavar
 """
 
 from nltk.corpus import brown
@@ -58,7 +58,7 @@ class posCorpus:
         self.tagSents = brown.tagged_sents()
         for sent in self.tagSents:
             self.tagTags['_BS_'][sent[0][1]] += 1
-        # print(self.tagTags['_BS_'])
+            # print(self.tagTags['_BS_'])
 
     def viterbi(self, text):
         textList = text.split()
@@ -91,15 +91,10 @@ class posCorpus:
                 seq.append(minimum)
         return seq
 
-    def forwardBackward(self, text):
-        pass
-
     def findPOS(self, text, kind):
         if kind == 'viterbi':
             seq = self.viterbi(text)
-            print(list(zip(text.split(),seq)))
-        elif kind == 'forward-backward':
-            self.forwardBackward(text)
+            print(list(zip(text.split(), seq)))
         else:
             print("Error")
             exit(1)
