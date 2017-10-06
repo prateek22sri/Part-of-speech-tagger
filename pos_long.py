@@ -13,6 +13,7 @@ from collections import Counter
 from collections import defaultdict
 from nltk.util import ngrams
 from math import log
+from copy import deepcopy
 
 
 class posCorpus:
@@ -64,32 +65,48 @@ class posCorpus:
         textList = text.split()
         globalDict = {}
         seq = []
+        newfringe = []
         for t in range(0, len(textList)):
-            tmp = {}
+            fringe = deepcopy(newfringe)
+            newfringe = []
+
             if (t == 0):
+                init_tmp = {}
                 for probableTag in self.tokenTags[textList[t]]:
                     priorProbability = log((self.tagCounter[probableTag] / len(self.tokens)), 2)
                     transitionProbability = log((self.tagTags['_BS_'][probableTag] / len(self.tagSents)), 2)
                     emissionProbability = log(
                         (self.tokenTags[textList[t]][probableTag] / self.tokenCounter[textList[t]]), 2)
-                    tmp[probableTag] = priorProbability + transitionProbability + emissionProbability
-                globalDict[textList[t]] = tmp
-                minimum = min(globalDict[textList[t]], key=globalDict[textList[t]].get)
-                seq.append(minimum)
+                    init_tmp[probableTag] = priorProbability + transitionProbability + emissionProbability
+                globalDict[textList[t]] = init_tmp
+                for k, v in globalDict[textList[t]].items():
+                    newfringe.append([[k], v])
             else:
-                for probableTag in self.tokenTags[textList[t]]:
-                    priorProbability = min(
-                        [globalDict[textList[t - 1]][previousTag] for previousTag in globalDict[textList[t - 1]]])
-                    emissionProbability = log(
-                        (self.tokenTags[textList[t]][probableTag] / self.tokenCounter[textList[t]]), 2)
-                    for previousTag in globalDict[textList[t - 1]]:
-                        if self.tagTags[previousTag][probableTag] != 0:
-                            transitionProbability = log((self.tagTags[previousTag][probableTag] / len(self.tokens)), 2)
-                            tmp[probableTag] = priorProbability + transitionProbability + emissionProbability
-                globalDict[textList[t]] = tmp
-                minimum = min(globalDict[textList[t]], key=globalDict[textList[t]].get)
-                seq.append(minimum)
-        return seq
+                while len(fringe) != 0:
+                    s = fringe.pop(0)
+                    tmp = {}
+                    for probableTag in self.tokenTags[textList[t]]:
+                        priorProbability = s[1]
+                        emissionProbability = log(
+                            (self.tokenTags[textList[t]][probableTag] / self.tokenCounter[textList[t]]), 2)
+                        if s[0][len(s[0]) - 1] in self.tagTags:
+                            if probableTag in self.tagTags[s[0][len(s[0]) - 1]]:
+                                if self.tagTags[s[0][len(s[0]) - 1]][probableTag] != 0:
+                                    transitionProbability = log(
+                                        (self.tagTags[s[0][len(s[0]) - 1]][probableTag] / len(self.tokens)), 2)
+                                    tmp[probableTag] = priorProbability + transitionProbability + emissionProbability
+                    for k, v in tmp.items():
+                        newfringe.append([s[0] + [k], v])
+                        if t == len(textList) - 1:
+                            seq.append([s[0] + [k], v])
+
+        min = seq[0][1]
+        r = []
+        for s in range(0, len(seq)):
+            if seq[s][1] < min:
+                min = seq[s][1]
+                r = seq[s][0]
+        return r
 
     def findPOS(self, text, kind):
         if kind == 'viterbi':
