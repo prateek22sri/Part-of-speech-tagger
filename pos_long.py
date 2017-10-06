@@ -60,13 +60,6 @@ class posCorpus:
             self.tagTags['_BS_'][sent[0][1]] += 1
         # print(self.tagTags['_BS_'])
 
-        """
-        add the "_es_" end of sentence tag to each tag as the transition
-        """
-        # for sent in brown.tagged_sents():
-        #     self.tagTags['_BS_'][sent[0][1]] += 1
-        # print(self.tagTags['_BS_'])
-
     def viterbi(self, text):
         textList = text.split()
         globalDict = {}
@@ -82,7 +75,6 @@ class posCorpus:
                     tmp[probableTag] = priorProbability + transitionProbability + emissionProbability
                 globalDict[textList[t]] = tmp
                 minimum = min(globalDict[textList[t]], key=globalDict[textList[t]].get)
-                # print(minimum,globalDict[textList[t]][minimum])
                 seq.append(minimum)
             else:
                 for probableTag in self.tokenTags[textList[t]]:
@@ -90,7 +82,6 @@ class posCorpus:
                         [globalDict[textList[t - 1]][previousTag] for previousTag in globalDict[textList[t - 1]]])
                     emissionProbability = log(
                         (self.tokenTags[textList[t]][probableTag] / self.tokenCounter[textList[t]]), 2)
-                    # print(emissionProbability)
                     for previousTag in globalDict[textList[t - 1]]:
                         if self.tagTags[previousTag][probableTag] != 0:
                             transitionProbability = log((self.tagTags[previousTag][probableTag] / len(self.tokens)), 2)
@@ -98,16 +89,20 @@ class posCorpus:
                 globalDict[textList[t]] = tmp
                 minimum = min(globalDict[textList[t]], key=globalDict[textList[t]].get)
                 seq.append(minimum)
-        print(seq)
+        return seq
 
     def forwardBackward(self, text):
         pass
 
     def findPOS(self, text, kind):
         if kind == 'viterbi':
-            self.viterbi(text)
+            seq = self.viterbi(text)
+            print(list(zip(text.split(),seq)))
         elif kind == 'forward-backward':
             self.forwardBackward(text)
+        else:
+            print("Error")
+            exit(1)
 
 
 if __name__ == '__main__':
