@@ -4,4 +4,4 @@ Two implementations of part-of-speech tagger. Long implementation uses Viterbi a
 
 + Long implementation is good for understanding how the transition probabilities, emission probabilities and prior probabilities work
 
-+ Short way uses NLTK's HMM function which lets you build a tagger in just 4 lines of code
++ Short implementation uses NLTK's HMM function which lets you build a tagger in just 4 lines of code
